@@ -1,0 +1,32 @@
+services:
+  encrypter-grpc:
+    build:
+      context: ./encrypter-grpc
+    container_name: encrypter-grpc
+    ports:
+      - "50051:50051"
+
+  decrypter-grpc:
+    build:
+      context: ./decrypter-grpc
+    container_name: decrypter-grpc
+    ports:
+      - "50052:50052"
+
+  encrypter-app:
+    build:
+      context: ./encrypter-app
+    container_name: encrypter-app
+    ports:
+      - "8502:8502"
+    depends_on:
+      - encrypter-grpc
+
+  decrypter-app:
+    build:
+      context: ./decrypter-app
+    container_name: decrypter-app
+    ports:
+      - "8501:8501"
+    depends_on:
+      - decrypter-grpc

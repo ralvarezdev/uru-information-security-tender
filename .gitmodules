@@ -1,0 +1,12 @@
+[submodule "encrypter-grpc"]
+	path = encrypter-grpc
+	url = https://github.com/ralvarezdev/uru-information-security-encrypter-grpc.git
+[submodule "encrypter-app"]
+	path = encrypter-app
+	url = https://github.com/ralvarezdev/uru-information-security-encrypter-app.git
+[submodule "decrypter-grpc"]
+	path = decrypter-grpc
+	url = https://github.com/ralvarezdev/uru-information-security-decrypter-grpc.git
+[submodule "decrypter-app"]
+	path = decrypter-app
+	url = https://github.com/ralvarezdev/uru-information-security-decrypter-app.git
