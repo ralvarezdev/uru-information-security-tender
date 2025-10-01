@@ -18,6 +18,9 @@ services:
       - POSTGRES_DB=${DECRYPTER_DB_NAME}
       - POSTGRES_USER=${DECRYPTER_DB_USER}
       - POSTGRES_PASSWORD=${DECRYPTER_DB_PASSWORD}
+    volumes:
+      - ./decrypter_private_key.pem:/private_key.pem
+      - ./decrypter_public_key.pem:/public_key.pem
 
   bidder-app:
     build:
@@ -49,6 +52,9 @@ services:
       - POSTGRES_DB=${CERTIFICATE_DB_NAME}
       - POSTGRES_USER=${CERTIFICATE_DB_USER}
       - POSTGRES_PASSWORD=${CERTIFICATE_DB_PASSWORD}
+    volumes:
+      - ./certificate_private_key.pem:/private_key.pem
+      - ./certificate_public_key.pem:/public_key.pem
 
   certificate-app:
     build:
