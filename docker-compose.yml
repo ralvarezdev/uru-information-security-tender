@@ -68,4 +68,6 @@ services:
       - "5432:5432"
     volumes:
       - ./postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+      - ./postgres/certificate_schema.sql:/docker-entrypoint-initdb.d/certificate_schema.sql
+      - ./postgres/decrypter_schema.sql:/docker-entrypoint-initdb.d/decrypter_schema.sql
       - ./volumes/postgres-data:/var/lib/postgresql/data
