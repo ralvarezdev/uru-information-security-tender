@@ -5,8 +5,6 @@ services:
     container_name: encrypter-grpc
     ports:
       - "50051:50051"
-    volumes:
-      - ./data:/data
 
   decrypter-grpc:
     build:
@@ -14,23 +12,60 @@ services:
     container_name: decrypter-grpc
     ports:
       - "50052:50052"
-    volumes:
-      - ./data:/data
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${DECRYPTER_DB_NAME}
+      - POSTGRES_USER=${DECRYPTER_DB_USER}
+      - POSTGRES_PASSWORD=${DECRYPTER_DB_PASSWORD}
 
-  encrypter-app:
+  bidder-app:
     build:
-      context: ./encrypter-app
-    container_name: encrypter-app
+      context: ./bidder-app
+    container_name: bidder-app
     ports:
       - "8502:8502"
     depends_on:
       - encrypter-grpc
 
-  decrypter-app:
+  admin-app:
     build:
-      context: ./decrypter-app
-    container_name: decrypter-app
+      context: ./admin-app
+    container_name: admin-app
     ports:
       - "8501:8501"
     depends_on:
       - decrypter-grpc
+
+  certificate-grpc:
+    build:
+      context: ./certificate-grpc
+    container_name: certificate-grpc
+    ports:
+      - "50053:50053"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${CERTIFICATE_DB_NAME}
+      - POSTGRES_USER=${CERTIFICATE_DB_USER}
+      - POSTGRES_PASSWORD=${CERTIFICATE_DB_PASSWORD}
+
+  certificate-app:
+    build:
+      context: ./certificate-app
+    container_name: certificate-app
+    ports:
+      - "8503:8503"
+    depends_on:
+      - certificate-grpc
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+      - ./volumes/postgres-data:/var/lib/postgresql/data
