@@ -3,4 +3,3 @@
 # Script to create necessary directories for Docker volumes
 mkdir -p ./volumes/postgres-data
 mkdir -p ./volumes/decrypter-data
-mkdir -p ./volumes/certificate-data

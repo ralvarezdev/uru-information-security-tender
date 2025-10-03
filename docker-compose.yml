@@ -21,7 +21,6 @@ services:
     volumes:
       - ./certificate_private_key.pem:/app/issuer_private_key.pem
       - ./certificate_public_key.pem:/app/issuer_public_key.pem
-      - ./volumes/certificate-data:/app/data
 
   encrypter-grpc:
     build:
@@ -60,41 +59,41 @@ services:
     depends_on:
       - certificate-grpc
 
-  #bidder-app:
-  #  build:
-  #    context: ./bidder-app
-  #  container_name: bidder-app
-  #  ports:
-  #    - "8502:8502"
-  #  depends_on:
-  #    - encrypter-grpc
-  #  environment:
-  #    - ENCRYPTER_GRPC_HOST=encrypter-grpc
-  #    - ENCRYPTER_GRPC_PORT=50051
+  bidder-app:
+    build:
+      context: ./bidder-app
+    container_name: bidder-app
+    ports:
+      - "8502:8502"
+    depends_on:
+      - encrypter-grpc
+    environment:
+      - ENCRYPTER_GRPC_HOST=encrypter-grpc
+      - ENCRYPTER_GRPC_PORT=50051
 
-  #admin-app:
-  #  build:
-  #    context: ./admin-app
-  #  container_name: admin-app
-  #  ports:
-  #    - "8501:8501"
-  #  depends_on:
-  #    - decrypter-grpc
-  #  environment:
-  #    - DECRYPTER_GRPC_HOST=decrypter-grpc
-  #    - DECRYPTER_GRPC_PORT=50052
+  admin-app:
+    build:
+      context: ./admin-app
+    container_name: admin-app
+    ports:
+      - "8501:8501"
+    depends_on:
+      - decrypter-grpc
+    environment:
+      - DECRYPTER_GRPC_HOST=decrypter-grpc
+      - DECRYPTER_GRPC_PORT=50052
 
-  #certificate-app:
-  #  build:
-  #    context: ./certificate-app
-  #  container_name: certificate-app
-  #  ports:
-  #    - "8503:8503"
-  #  depends_on:
-  #    - certificate-grpc
-  #  environment:
-  #    - CERTIFICATE_GRPC_HOST=certificate-grpc
-  #    - CERTIFICATE_GRPC_PORT=50053
+  certificate-app:
+    build:
+      context: ./certificate-app
+    container_name: certificate-app
+    ports:
+      - "8503:8503"
+    depends_on:
+      - certificate-grpc
+    environment:
+      - CERTIFICATE_GRPC_HOST=certificate-grpc
+      - CERTIFICATE_GRPC_PORT=50053
 
   postgres:
     image: postgres:latest

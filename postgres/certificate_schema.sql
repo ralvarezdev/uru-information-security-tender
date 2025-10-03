@@ -12,7 +12,7 @@ WHERE removed_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS issued_certificates (
     id SERIAL PRIMARY KEY,
-    serial_number BIGINT NOT NULL UNIQUE,
+    serial_number TEXT NOT NULL UNIQUE,
     common_name TEXT NOT NULL,
     issued_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -29,7 +29,7 @@ BEGIN
 END;
 $$;
 
-CREATE PROCEDURE revoke_certificate(p_serial_number BIGINT)
+CREATE PROCEDURE revoke_certificate(p_serial_number TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -40,7 +40,7 @@ BEGIN
 END;
 $$;
 
-CREATE FUNCTION check_certificate_validity(p_serial_number BIGINT)
+CREATE FUNCTION check_certificate_validity(p_serial_number TEXT)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 AS $$
@@ -55,7 +55,7 @@ BEGIN
 END;
 $$;
 
-CREATE PROCEDURE issue_certificate(p_serial_number BIGINT, p_common_name TEXT, p_expires_at TIMESTAMP WITH TIME ZONE)
+CREATE PROCEDURE issue_certificate(p_serial_number TEXT, p_common_name TEXT, p_expires_at TIMESTAMP WITH TIME ZONE)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -80,12 +80,26 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     -- Revoke all certificates for the common name
-    PERFORM revoke_common_name_certificates(p_common_name);
+    CALL revoke_common_name_certificates(p_common_name);
 
     -- Remove existing active key for the common name
-    PERFORM remove_organization_key(p_common_name);
+    CALL remove_organization_key(p_common_name);
 
     INSERT INTO organizations_keys (common_name, key_value)
     VALUES (p_common_name, p_key_value);
+END;
+$$;
+
+CREATE FUNCTION get_active_organization_key(p_common_name TEXT)
+RETURNS BYTEA
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_key_value BYTEA;
+BEGIN
+    SELECT key_value INTO v_key_value
+    FROM organizations_keys
+    WHERE common_name = p_common_name AND removed_at IS NULL;
+    RETURN v_key_value;
 END;
 $$;

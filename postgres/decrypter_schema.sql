@@ -36,14 +36,14 @@ BEGIN
 END;
 $$;
 
-CREATE FUNCTION list_active_files()
-RETURNS TABLE(filename TEXT, uploaded_at TIMESTAMP WITH TIME ZONE)
+CREATE OR REPLACE FUNCTION list_active_files()
+RETURNS TABLE(common_name TEXT, filename TEXT, uploaded_at TIMESTAMP WITH TIME ZONE)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT filename, uploaded_at
+    SELECT encrypted_files.common_name, encrypted_files.filename, encrypted_files.uploaded_at
     FROM encrypted_files
-    WHERE removed_at IS NULL;
+    WHERE encrypted_files.removed_at IS NULL;
 END;
-$$
+$$;
