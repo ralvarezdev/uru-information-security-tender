@@ -5,6 +5,13 @@ services:
     container_name: encrypter-grpc
     ports:
       - "50051:50051"
+    environment:
+      - DECRYPTER_GRPC_HOST=decrypter-grpc
+      - DECRYPTER_GRPC_PORT=50052
+    volumes:
+      - ./encrypter_private_key.pem:/company_private_key.pem
+      - ./encrypter_public_key.pem:/company_public_key.pem
+      - ./decrypter_public_key.pem:/tender_public_key.pem
 
   decrypter-grpc:
     build:
@@ -18,9 +25,12 @@ services:
       - POSTGRES_DB=${DECRYPTER_DB_NAME}
       - POSTGRES_USER=${DECRYPTER_DB_USER}
       - POSTGRES_PASSWORD=${DECRYPTER_DB_PASSWORD}
+      - CERTIFICATE_GRPC_HOST=certificate-grpc
+      - CERTIFICATE_GRPC_PORT=50053
     volumes:
-      - ./decrypter_private_key.pem:/private_key.pem
-      - ./decrypter_public_key.pem:/public_key.pem
+      - ./decrypter_private_key.pem:/tender_private_key.pem
+      - ./decrypter_public_key.pem:/tender_public_key.pem
+      - ./volumes/decrypter-data:/data
 
   bidder-app:
     build:
@@ -30,6 +40,9 @@ services:
       - "8502:8502"
     depends_on:
       - encrypter-grpc
+    environment:
+      - ENCRYPTER_GRPC_HOST=encrypter-grpc
+      - ENCRYPTER_GRPC_PORT=50051
 
   admin-app:
     build:
@@ -39,6 +52,9 @@ services:
       - "8501:8501"
     depends_on:
       - decrypter-grpc
+    environment:
+      - DECRYPTER_GRPC_HOST=decrypter-grpc
+      - DECRYPTER_GRPC_PORT=50052
 
   certificate-grpc:
     build:
@@ -53,8 +69,9 @@ services:
       - POSTGRES_USER=${CERTIFICATE_DB_USER}
       - POSTGRES_PASSWORD=${CERTIFICATE_DB_PASSWORD}
     volumes:
-      - ./certificate_private_key.pem:/private_key.pem
-      - ./certificate_public_key.pem:/public_key.pem
+      - ./certificate_private_key.pem:/issuer_private_key.pem
+      - ./certificate_public_key.pem:/issuer_public_key.pem
+      - ./volumes/certificate-data:/data
 
   certificate-app:
     build:
@@ -64,6 +81,9 @@ services:
       - "8503:8503"
     depends_on:
       - certificate-grpc
+    environment:
+      - CERTIFICATE_GRPC_HOST=certificate-grpc
+      - CERTIFICATE_GRPC_PORT=50053
 
   postgres:
     image: postgres:latest

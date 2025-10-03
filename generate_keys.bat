@@ -17,3 +17,10 @@ echo Generating Encrypter Microservice Ed25519 key pair...
 openssl genpkey -algorithm ed25519 -out encrypter_private_key.pem
 openssl pkey -in encrypter_private_key.pem -pubout -out encrypter_public_key.pem
 echo Keys generated: encrypter_private_key.pem and encrypter_public_key.pem
+
+echo Generating Decrypter Microservice Ed25519 key pair...
+openssl genpkey -algorithm ed25519 -out decrypter_private_key.pem
+openssl pkey -in decrypter_private_key.pem -pubout -out decrypter_public_key.pem
+echo Keys generated: decrypter_private_key.pem and decrypter_public_key.pem
+
+echo All keys generated successfully.
