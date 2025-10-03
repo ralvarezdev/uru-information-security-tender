@@ -10,7 +10,7 @@ if errorlevel 1 (
 REM Generate keys using OpenSSL
 echo Generating Certificate Microservice Ed25519 key pair...
 openssl genpkey -algorithm ed25519 -out certificate_private_key.pem
-openssl pkey -in certificate_private_key -pubout -out certificate_public_key.pem
+openssl pkey -in certificate_private_key.pem -pubout -out certificate_public_key.pem
 echo Keys generated: certificate_private_key.pem and certificate_public_key.pem
 
 echo Generating Encrypter Microservice Ed25519 key pair...

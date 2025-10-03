@@ -2,11 +2,11 @@ CREATE TABLE IF NOT EXISTS encrypted_files (
     id SERIAL PRIMARY KEY,
     filename TEXT NOT NULL,
     common_name TEXT NOT NULL,
-    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     removed_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
-CREATE STORED PROCEDURE remove_encrypted_file(p_filename TEXT, p_common_name TEXT)
+CREATE PROCEDURE remove_encrypted_file(p_filename TEXT, p_common_name TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -17,7 +17,7 @@ BEGIN
 END;
 $$;
 
-CREATE STORED PROCEDURE remove_encrypted_files()
+CREATE PROCEDURE remove_encrypted_files()
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -27,7 +27,7 @@ BEGIN
 END;
 $$;
 
-CREATE STORED PROCEDURE add_encrypted_file(p_filename TEXT, p_common_name TEXT)
+CREATE PROCEDURE add_encrypted_file(p_filename TEXT, p_common_name TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN

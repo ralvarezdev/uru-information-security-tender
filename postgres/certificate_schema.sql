@@ -2,23 +2,24 @@ CREATE TABLE IF NOT EXISTS organizations_keys (
     id SERIAL PRIMARY KEY,
     common_name TEXT NOT NULL,
     key_value BYTEA NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     removed_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
-    UNIQUE (common_name, removed_at IS NULL)
 );
 
-CREATE INDEX idx_common_name ON organizations_keys(common_name);
+CREATE UNIQUE INDEX organizations_keys_unique_active
+ON organizations_keys (common_name)
+WHERE removed_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS issued_certificates (
     id SERIAL PRIMARY KEY,
     serial_number BIGINT NOT NULL UNIQUE,
     common_name TEXT NOT NULL,
     issued_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     revoked_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
-CREATE STORED PROCEDURE remove_organization_key(p_common_name TEXT)
+CREATE PROCEDURE remove_organization_key(p_common_name TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -28,7 +29,7 @@ BEGIN
 END;
 $$;
 
-CREATE STORED PROCEDURE revoke_certificate(p_serial_number BIGINT)
+CREATE PROCEDURE revoke_certificate(p_serial_number BIGINT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -39,7 +40,7 @@ BEGIN
 END;
 $$;
 
-CREATE STORED PROCEDURE check_certificate_validity(p_serial_number BIGINT)
+CREATE FUNCTION check_certificate_validity(p_serial_number BIGINT)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 AS $$
@@ -54,7 +55,7 @@ BEGIN
 END;
 $$;
 
-CREATE STORED PROCEDURE issue_certificate(p_serial_number BIGINT, p_common_name TEXT, p_expires_at TIMESTAMP WITH TIME ZONE)
+CREATE PROCEDURE issue_certificate(p_serial_number BIGINT, p_common_name TEXT, p_expires_at TIMESTAMP WITH TIME ZONE)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -63,7 +64,7 @@ BEGIN
 END;
 $$;
 
-CREATE STORED PROCEDURE revoke_common_name_certificates(p_common_name TEXT)
+CREATE PROCEDURE revoke_common_name_certificates(p_common_name TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -74,7 +75,7 @@ BEGIN
 END;
 $$;
 
-CREATE STORED PROCEDURE upsert_organization_key(p_common_name TEXT, p_key_value BYTEA)
+CREATE PROCEDURE upsert_organization_key(p_common_name TEXT, p_key_value BYTEA)
 LANGUAGE plpgsql
 AS $$
 BEGIN

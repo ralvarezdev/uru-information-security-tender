@@ -1,4 +1,28 @@
 services:
+  certificate-grpc:
+    build:
+      context: ./certificate-grpc
+    container_name: certificate-grpc
+    ports:
+      - "50053:50053"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${CERTIFICATE_DB_NAME}
+      - POSTGRES_USER=${CERTIFICATE_DB_USER}
+      - POSTGRES_PASSWORD=${CERTIFICATE_DB_PASSWORD}
+      - ISSUER_COMMON_NAME=${ISSUER_COMMON_NAME}
+      - ISSUER_ORGANIZATION=${ISSUER_ORGANIZATION}
+      - ISSUER_ORGANIZATIONAL_UNIT=${ISSUER_ORGANIZATIONAL_UNIT}
+      - ISSUER_COUNTRY=${ISSUER_COUNTRY}
+      - ISSUER_STATE=${ISSUER_STATE}
+      - ISSUER_LOCALITY=${ISSUER_LOCALITY}
+      - CERTIFICATE_VALIDITY_DAYS=${CERTIFICATE_VALIDITY_DAYS}
+    volumes:
+      - ./certificate_private_key.pem:/app/issuer_private_key.pem
+      - ./certificate_public_key.pem:/app/issuer_public_key.pem
+      - ./volumes/certificate-data:/app/data
+
   encrypter-grpc:
     build:
       context: ./encrypter-grpc
@@ -9,9 +33,11 @@ services:
       - DECRYPTER_GRPC_HOST=decrypter-grpc
       - DECRYPTER_GRPC_PORT=50052
     volumes:
-      - ./encrypter_private_key.pem:/company_private_key.pem
-      - ./encrypter_public_key.pem:/company_public_key.pem
-      - ./decrypter_public_key.pem:/tender_public_key.pem
+      - ./encrypter_private_key.pem:/app/company_private_key.pem
+      - ./encrypter_public_key.pem:/app/company_public_key.pem
+      - ./decrypter_public_key.pem:/app/tender_public_key.pem
+    depends_on:
+      - decrypter-grpc
 
   decrypter-grpc:
     build:
@@ -28,72 +54,59 @@ services:
       - CERTIFICATE_GRPC_HOST=certificate-grpc
       - CERTIFICATE_GRPC_PORT=50053
     volumes:
-      - ./decrypter_private_key.pem:/tender_private_key.pem
-      - ./decrypter_public_key.pem:/tender_public_key.pem
-      - ./volumes/decrypter-data:/data
-
-  bidder-app:
-    build:
-      context: ./bidder-app
-    container_name: bidder-app
-    ports:
-      - "8502:8502"
-    depends_on:
-      - encrypter-grpc
-    environment:
-      - ENCRYPTER_GRPC_HOST=encrypter-grpc
-      - ENCRYPTER_GRPC_PORT=50051
-
-  admin-app:
-    build:
-      context: ./admin-app
-    container_name: admin-app
-    ports:
-      - "8501:8501"
-    depends_on:
-      - decrypter-grpc
-    environment:
-      - DECRYPTER_GRPC_HOST=decrypter-grpc
-      - DECRYPTER_GRPC_PORT=50052
-
-  certificate-grpc:
-    build:
-      context: ./certificate-grpc
-    container_name: certificate-grpc
-    ports:
-      - "50053:50053"
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=${CERTIFICATE_DB_NAME}
-      - POSTGRES_USER=${CERTIFICATE_DB_USER}
-      - POSTGRES_PASSWORD=${CERTIFICATE_DB_PASSWORD}
-    volumes:
-      - ./certificate_private_key.pem:/issuer_private_key.pem
-      - ./certificate_public_key.pem:/issuer_public_key.pem
-      - ./volumes/certificate-data:/data
-
-  certificate-app:
-    build:
-      context: ./certificate-app
-    container_name: certificate-app
-    ports:
-      - "8503:8503"
+      - ./decrypter_private_key.pem:/app/tender_private_key.pem
+      - ./decrypter_public_key.pem:/app/tender_public_key.pem
+      - ./volumes/decrypter-data:/app/data
     depends_on:
       - certificate-grpc
-    environment:
-      - CERTIFICATE_GRPC_HOST=certificate-grpc
-      - CERTIFICATE_GRPC_PORT=50053
+
+  #bidder-app:
+  #  build:
+  #    context: ./bidder-app
+  #  container_name: bidder-app
+  #  ports:
+  #    - "8502:8502"
+  #  depends_on:
+  #    - encrypter-grpc
+  #  environment:
+  #    - ENCRYPTER_GRPC_HOST=encrypter-grpc
+  #    - ENCRYPTER_GRPC_PORT=50051
+
+  #admin-app:
+  #  build:
+  #    context: ./admin-app
+  #  container_name: admin-app
+  #  ports:
+  #    - "8501:8501"
+  #  depends_on:
+  #    - decrypter-grpc
+  #  environment:
+  #    - DECRYPTER_GRPC_HOST=decrypter-grpc
+  #    - DECRYPTER_GRPC_PORT=50052
+
+  #certificate-app:
+  #  build:
+  #    context: ./certificate-app
+  #  container_name: certificate-app
+  #  ports:
+  #    - "8503:8503"
+  #  depends_on:
+  #    - certificate-grpc
+  #  environment:
+  #    - CERTIFICATE_GRPC_HOST=certificate-grpc
+  #    - CERTIFICATE_GRPC_PORT=50053
 
   postgres:
     image: postgres:latest
     container_name: postgres
     env_file:
       - .env
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_SUPERUSER_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - ./postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
       - ./postgres/certificate_schema.sql:/docker-entrypoint-initdb.d/certificate_schema.sql
       - ./postgres/decrypter_schema.sql:/docker-entrypoint-initdb.d/decrypter_schema.sql
-      - ./volumes/postgres-data:/var/lib/postgresql/data
+      - ./volumes/postgres-data:/var/lib/postgresql
